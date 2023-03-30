@@ -1,5 +1,6 @@
 
 from core.utils import Base64ImageField, add_ingredients, add_tags
+from django.db import transaction
 from recipes.models import (AmountIngredientInRecipe, Favorite, Ingredient,
                             Recipe, ShoppingCart, Tag)
 from rest_framework import serializers, validators
@@ -114,9 +115,6 @@ class RecipesReadSerializer(serializers.ModelSerializer):
 
 class WriteAmountIngredientInRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для создания ингредиентов в рецепте."""
-    # Я правильно понмаю если в рилейтед поле есть
-    # кверисет то оно используется только для записи
-    # а для оборажения поле id берут из модели указанной в мета?
     id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
 
     class Meta:
@@ -146,6 +144,7 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
         fields = ('id', 'tags', 'author', 'ingredients',
                   'name', 'image', 'text', 'cooking_time')
 
+    @transaction.atomic
     def create(self, validated_data):
         ingredint_list = validated_data.pop('ingredient_list')
         tags = validated_data.pop('tags')
@@ -157,6 +156,7 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
 
         return recipe
 
+    @transaction.atomic
     def update(self, instance, validated_data):
         ingredint_list = validated_data.pop('ingredient_list')
         tags = validated_data.pop('tags')
