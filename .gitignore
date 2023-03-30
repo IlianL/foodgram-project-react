@@ -6,10 +6,6 @@ __pycache__/
 # C extensions
 *.so
 
-# Media api
-media/
-.vscode/
-
 # Distribution / packaging
 .Python
 build/
@@ -134,3 +130,11 @@ dmypy.json
 
 # .idea
 .idea
+
+
+media/
+static/
+.vscode/
+media
+static
+.vscode
