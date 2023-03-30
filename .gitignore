@@ -7,9 +7,8 @@ __pycache__/
 *.so
 
 # Media api
-backend/media/
+media/
 .vscode/
-
 
 # Distribution / packaging
 .Python
