@@ -82,10 +82,12 @@ class Recipe(models.Model):
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
         ordering = ('-pub_date',)
-        constraints = (models.UniqueConstraint(
+        constraints = [models.UniqueConstraint(
                        fields=('name', 'author'),
-                       name='unique_for_author',),
-                       )
+                       name='unique_for_author',
+                       violation_error_message=(
+                            'У вас уже есть рецепт с таким названием')
+                       )]
 
     def __str__(self):
         return self.name
@@ -119,10 +121,12 @@ class AmountIngredientInRecipe(models.Model):
         verbose_name = 'Количество ингредиента'
         verbose_name_plural = 'Количество ингредиентов'
         ordering = ('id',)
-        constraints = (models.UniqueConstraint(
+        constraints = [models.UniqueConstraint(
                        fields=('recipe', 'ingredient'),
                        name='unique_recipe_ingredient',
-                       ),)
+                       violation_error_message=(
+                            'У вас уже есть этот инредиент в рецепте')
+                       )]
 
     def __str__(self):
         return (f'{self.ingredient.name} ({self.ingredient.measurement_unit})'
@@ -147,13 +151,12 @@ class Favorite(models.Model):
     class Meta:
         verbose_name = 'Избранный рецепт'
         verbose_name_plural = 'Избранные рецепты'
-        constraints = (models.UniqueConstraint(
+        constraints = [models.UniqueConstraint(
                        fields=('user', 'recipe'),
                        name='unique_favorite_recipe',
                        violation_error_message=(
                             'Вы уже подписаны на этот рецепт')
-                       ),
-                       )
+                       )]
 
     def __str__(self):
         return f'{self.user} added {self.recipe}'
@@ -177,13 +180,12 @@ class ShoppingCart(models.Model):
     class Meta:
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Списки покупок'
-        constraints = (models.UniqueConstraint(
+        constraints = [models.UniqueConstraint(
                        fields=('user', 'recipe'),
                        name='unique_shoppings_recipe',
                        violation_error_message=(
                             'Этот рецепт уже у вас в корзине.')
-                       ),
-                       )
+                       )]
 
     def __str__(self):
         return f'{self.user} added {self.recipe}'
