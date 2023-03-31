@@ -1,5 +1,6 @@
 
-from core.utils import Base64ImageField, add_ingredients, add_tags
+from core.utils_api_serializers import (Base64ImageField, add_ingredients,
+                                        add_tags)
 from django.db import transaction
 from recipes.models import (AmountIngredientInRecipe, Favorite, Ingredient,
                             Recipe, ShoppingCart, Tag)
@@ -29,11 +30,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_is_subscribed(self, obj):
         """Проверка подписки на пользователей."""
-        user = self.context.get('request').user
-        return (
-            user.is_authenticated
-            and Subscription.objects.filter(user=user, author=obj.id).exists()
-        )
+        return obj.id in self.context['subscriptions']
 
     def create(self, validated_data):
         """ Создаём нового пользователя."""
@@ -85,7 +82,6 @@ class RecipesReadSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     ingredients = ReadAmountIngredientInRecipeSerializer(
         many=True,
-        # А почему в прошлых  вложенных серилайзерах источник не нужен был?
         source='ingredient_list')
     image = Base64ImageField()
     is_favorited = serializers.SerializerMethodField(read_only=True)
@@ -100,17 +96,11 @@ class RecipesReadSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         """Находится ли рецепт в избранном."""
-        request = self.context.get('request')
-        return (
-            request.user.is_authenticated
-            and request.user.favorite_list.filter(recipe=obj).exists())
+        return obj.id in self.context['favorite_recipes']
 
     def get_is_in_shopping_cart(self, obj):
         """Находится ли рецепт в списке покупок."""
-        request = self.context.get('request')
-        return (
-            request.user.is_authenticated
-            and request.user.shop_list.filter(recipe=obj).exists())
+        return obj.id in self.context['shopping_cart']
 
 
 class WriteAmountIngredientInRecipeSerializer(serializers.ModelSerializer):
@@ -176,6 +166,26 @@ class SubscriptionRecipeSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
         read_only_fields = ('__all__',)
+
+
+class CreateSubscriptionRecipeSerializer(serializers.ModelSerializer):
+    """Создание подписки на автора."""
+
+    class Meta:
+        model = Subscription
+        fields = ('user', 'author')
+        validators = [
+            validators.UniqueTogetherValidator(
+                queryset=Subscription.objects.all(),
+                fields=['user', 'author'],
+                message='Вы уже подписаны на этого автора.'
+            )
+        ]
+
+    def to_representation(self, instance):
+        request = self.context.get('request')
+        return SubscriptionSerializer(
+            instance.author, context={'request': request}).data
 
 
 class SubscriptionSerializer(UserSerializer):

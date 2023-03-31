@@ -131,10 +131,6 @@ class AmountIngredientInRecipe(models.Model):
 
 class Favorite(models.Model):
     """Модель для избраного."""
-    # Для Favorite и  ShoppingCart можно было бы сделать абстрактную модель
-    # но риэйтед нейм формата "%(app_label)s_%(class)s_related",
-    # не очень, с учётом того что verbose_name ещё переписывать
-    # мне кжается не стоит оно того.
     user = models.ForeignKey(
         User,
         verbose_name='Пользователь',
@@ -153,7 +149,10 @@ class Favorite(models.Model):
         verbose_name_plural = 'Избранные рецепты'
         constraints = (models.UniqueConstraint(
                        fields=('user', 'recipe'),
-                       name='unique_favorite_recipe',),
+                       name='unique_favorite_recipe',
+                       violation_error_message=(
+                            'Вы уже подписаны на этот рецепт')
+                       ),
                        )
 
     def __str__(self):
@@ -180,7 +179,10 @@ class ShoppingCart(models.Model):
         verbose_name_plural = 'Списки покупок'
         constraints = (models.UniqueConstraint(
                        fields=('user', 'recipe'),
-                       name='unique_shoppings_recipe',),
+                       name='unique_shoppings_recipe',
+                       violation_error_message=(
+                            'Этот рецепт уже у вас в корзине.')
+                       ),
                        )
 
     def __str__(self):

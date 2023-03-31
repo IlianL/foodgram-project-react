@@ -1,5 +1,4 @@
-from core.utils import (create_or_400, delete_or_400, make_txt_response,
-                        serializer_with_data_content)
+from core.utils_api_view import delete_or_400, make_txt_response
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -14,18 +13,11 @@ from users.models import Subscription, User
 
 from .filters import CustomIngredientsFilter, CustomRecipeFilter
 from .permissions import AdminOrReadOnly, IsAuthorOrReadOnly
-from .serializers import (FavoriteSerializer, IngredientsSerializer,
+from .serializers import (CreateSubscriptionRecipeSerializer,
+                          FavoriteSerializer, IngredientsSerializer,
                           RecipesReadSerializer, RecipesWriteSerializer,
                           ShoppingCartSerializer, SubscriptionSerializer,
                           TagsSerializer, UserSerializer)
-
-"""Все эндпоинты проверены и работают корректно, возвращают верные
-стутус-коды. Остался рефакторинг. Убрать закоменченый код,
-добавить описаний в модели и перекинуть их в кор, дубль код в кор.
-Убрать лишние импорты, удалить данлоад_серилайзер.
-Добавить док стрингов к классам и функциям.
-Добавить в гит игнор медиа и прочее, чекнуть рекваирментс, сеттингс.
-Оптимизировать модели, добавить абстрактных."""
 
 
 class TagsViewSet(ReadOnlyModelViewSet):
@@ -42,6 +34,19 @@ class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+    def get_serializer_context(self):
+        """Добавляем в контекст сет с id автора.
+        Так мы решаем n+1 проблему при запросе к БД в серилизаторе."""
+        subs = set(
+            Subscription.objects.filter(
+                user_id=self.request.user).values_list('author_id', flat=True))
+        return {
+            'request': self.request,
+            'subscriptions': subs,
+            'format': self.format_kwarg,
+            'view': self
+        }
+
     @action(
         detail=True,
         methods=['POST', 'DELETE'],
@@ -55,16 +60,15 @@ class CustomUserViewSet(UserViewSet):
                 {'error': 'Нельзя подписаться на себя!'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        data = {
+            'user': user.id,
+            'author': id
+        }
+        serializer = CreateSubscriptionRecipeSerializer(
+            data=data, context={'request': request})
         if request.method == 'POST':
-            serializer = SubscriptionSerializer(
-                author,
-                data=request.data,
-                context={'request': request}
-            )
             serializer.is_valid(raise_exception=True)
-            create_or_400(
-                Subscription, 'Вы уже подписаны на этого пользователя.',
-                user=user, author=author)
+            serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         delete_or_400(Subscription, 'Вы не подписаны на этого пользователя.',
                       user=user, author=author)
@@ -76,13 +80,10 @@ class CustomUserViewSet(UserViewSet):
         permission_classes=[permissions.IsAuthenticated]
     )
     def subscriptions(self, request):
-        if self.request.user.is_anonymous:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
         sub_list = self.paginate_queryset(
             User.objects.filter(following__user=request.user))
         serializer = SubscriptionSerializer(
-            sub_list, many=True, context={'request': request})
+            sub_list, many=True, context=self.get_serializer_context())
         return self.get_paginated_response(serializer.data)
 
 
@@ -108,6 +109,32 @@ class RecipesViewSet(ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = CustomRecipeFilter
 
+    def get_serializer_context(self):
+        """Добавляем в контекст сет с id автора.
+        Так мы решаем n+1 проблему при запросе к БД в серилизаторе."""
+        subs = set(
+            Subscription.objects.filter(
+                user_id=self.request.user).values_list('author_id', flat=True))
+        favorite_recipes = set(
+            Favorite.objects.filter(
+                user_id=self.request.user,
+                recipe_id=self.kwargs['pk']).values_list(
+                    'recipe_id', flat=True))
+        shopping_cart = set(
+            ShoppingCart.objects.filter(
+                user_id=self.request.user,
+                # Нормально так id рецепта получить?
+                recipe_id=self.kwargs['pk']).values_list(
+                    'recipe_id', flat=True))
+        return {
+            'request': self.request,
+            'favorite_recipes': favorite_recipes,
+            'shopping_cart': shopping_cart,
+            'subscriptions': subs,
+            'format': self.format_kwarg,
+            'view': self
+        }
+
     def get_serializer_class(self):
         if self.request.method in ('POST', 'PUT', 'PATCH'):
             return RecipesWriteSerializer
@@ -121,8 +148,12 @@ class RecipesViewSet(ModelViewSet):
     def favorite(self, request, pk=None):
         user = request.user
         recipe = get_object_or_404(Recipe, id=pk)
-        serializer = serializer_with_data_content(
-            request, pk, user, FavoriteSerializer)
+        data = {
+            'user': user.id,
+            'recipe': pk
+        }
+        serializer = FavoriteSerializer(
+            data=data, context=self.get_serializer_context())
         if request.method == 'POST':
             serializer.is_valid(raise_exception=True)
             serializer.save()
@@ -141,8 +172,12 @@ class RecipesViewSet(ModelViewSet):
     def shopping_cart(self, request, pk=None):
         user = request.user
         recipe = get_object_or_404(Recipe, id=pk)
-        serializer = serializer_with_data_content(
-            request, pk, user, ShoppingCartSerializer)
+        data = {
+            'user': user.id,
+            'recipe': pk
+        }
+        serializer = ShoppingCartSerializer(
+            data=data, context=self.get_serializer_context())
         if request.method == 'POST':
             serializer.is_valid(raise_exception=True)
             serializer.save()
@@ -151,10 +186,6 @@ class RecipesViewSet(ModelViewSet):
             )
         delete_or_400(ShoppingCart, 'У вас нет этого рецепта в корзине.',
                       user=user, recipe=recipe)
-        # Мне кажется тут  и в похожих выше много запросов,
-        # один на экзист, а другай на удаление
-        # А оставить только get_or_404 не очень, по ТЗ должен вернуться код 400
-
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
