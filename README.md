@@ -1,2 +1,2 @@
 # praktikum_new_diplom
-check docker
+check docker 2
