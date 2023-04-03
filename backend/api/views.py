@@ -65,7 +65,7 @@ class CustomUserViewSet(UserViewSet):
             'author': id
         }
         serializer = CreateSubscriptionRecipeSerializer(
-            data=data, context={'request': request})
+            data=data, context=self.get_serializer_context())
         if request.method == 'POST':
             serializer.is_valid(raise_exception=True)
             serializer.save()
@@ -110,7 +110,8 @@ class RecipesViewSet(ModelViewSet):
     filterset_class = CustomRecipeFilter
 
     def get_serializer_context(self):
-        """Добавляем в контекст сет с id автора.
+        """
+        Добавляем в контекст сет с id автора, рецепта из корзины и избранного.
         Так мы решаем n+1 проблему при запросе к БД в серилизаторе."""
         subs = set(
             Subscription.objects.filter(
@@ -123,7 +124,6 @@ class RecipesViewSet(ModelViewSet):
         shopping_cart = set(
             ShoppingCart.objects.filter(
                 user_id=self.request.user,
-                # Нормально так id рецепта получить?
                 recipe_id=self.kwargs['pk']).values_list(
                     'recipe_id', flat=True))
         return {

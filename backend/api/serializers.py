@@ -2,6 +2,7 @@
 from core.utils_api_serializers import (Base64ImageField, add_ingredients,
                                         add_tags)
 from django.db import transaction
+from django.db.models import Count
 from recipes.models import (AmountIngredientInRecipe, Favorite, Ingredient,
                             Recipe, ShoppingCart, Tag)
 from rest_framework import serializers, validators
@@ -184,8 +185,13 @@ class CreateSubscriptionRecipeSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         request = self.context.get('request')
+        subs = set(
+            Subscription.objects.filter(
+                user_id=request.user).values_list('author_id', flat=True))
         return SubscriptionSerializer(
-            instance.author, context={'request': request}).data
+            instance.author, context={
+                'request': request,
+                'subscriptions': subs}).data
 
 
 class SubscriptionSerializer(UserSerializer):
@@ -198,7 +204,15 @@ class SubscriptionSerializer(UserSerializer):
                   'is_subscribed', 'recipes', 'recipes_count')
         read_only_fields = ('email', 'username', 'last_name', 'first_name',)
 
+# Получится такой вот монстр, скорее всего я всё сделал не так :DD
+    # def get_queryset(self):
+    #     id_author = next(iter(self.context.get('subscriptions')))
+    #     recipe_queryset = Recipe.objects.filter(author=id_author)
+    #     return recipe_queryset.values('author').annotate(count=Count('name'))
+
     def get_recipes_count(self, obj):
+        # qr = self.get_queryset()
+        # return qr[0]['count']
         return obj.recipes.count()
 
 
