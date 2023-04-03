@@ -2,7 +2,6 @@
 from core.utils_api_serializers import (Base64ImageField, add_ingredients,
                                         add_tags)
 from django.db import transaction
-from django.db.models import Count
 from recipes.models import (AmountIngredientInRecipe, Favorite, Ingredient,
                             Recipe, ShoppingCart, Tag)
 from rest_framework import serializers, validators
