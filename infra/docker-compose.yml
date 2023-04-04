@@ -6,7 +6,7 @@ services:
     volumes:
       - db_site:/var/lib/postgresql/data/
     env_file:
-      - ../backend/.env
+      - ./.env
 
   backend:
     image: ilian93/food_back:latest
@@ -17,7 +17,7 @@ services:
     depends_on:
       - db
     env_file:
-      - ../backend/.env
+      - ./.env
 
   frontend:
     image: ilian93/food_front:latest
@@ -33,7 +33,7 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ../frontend/build:/usr/share/nginx/html/
-      - ../docs/:/usr/share/nginx/html/api/docs/
+      - ./docs/:/usr/share/nginx/html/api/docs/
       - static_value:/app/static/
       - media_value:/var/html/media/
     depends_on:
