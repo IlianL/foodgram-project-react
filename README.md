@@ -1,2 +1,2 @@
 # praktikum_new_diplom
-check docker 5
+check workflow 10
