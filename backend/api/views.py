@@ -37,14 +37,12 @@ class CustomUserViewSet(UserViewSet):
     def get_serializer_context(self):
         """Добавляем в контекст сет с id автора.
         Так мы решаем n+1 проблему при запросе к БД в серилизаторе."""
-        try:
-            subs = set(
-                Subscription.objects.filter(
-                    user_id=self.request.user).values_list(
-                        'author_id', flat=True))
-        except TypeError:
-            # При регистрации
-            subs = set()
+
+        subs = set(
+            Subscription.objects.filter(
+                user_id=self.request.user.id).values_list(
+                    'author_id', flat=True))
+
         return {
             'request': self.request,
             'subscriptions': subs,
