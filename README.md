@@ -1,2 +1,2 @@
 # praktikum_new_diplom
-check workflow 24
+check workflow 25
