@@ -151,7 +151,7 @@ class RecipesViewSet(ModelViewSet):
         permission_classes=[permissions.IsAuthenticated]
     )
     def favorite(self, request, pk=None):
-        user = request.user.id
+        user = request.user
         recipe = get_object_or_404(Recipe, id=pk)
         data = {
             'user': user.id,
@@ -175,7 +175,7 @@ class RecipesViewSet(ModelViewSet):
         permission_classes=[permissions.IsAuthenticated]
     )
     def shopping_cart(self, request, pk=None):
-        user = request.user.id
+        user = request.user
         recipe = get_object_or_404(Recipe, id=pk)
         data = {
             'user': user.id,
