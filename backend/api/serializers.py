@@ -242,5 +242,7 @@ class ShoppingCartSerializer(FavoriteSerializer):
         ]
 
     def to_representation(self, instance):
-        serializer = SubscriptionRecipeSerializer(instance.recipe)
+        request = self.context.get('request')
+        serializer = SubscriptionRecipeSerializer(
+            instance.recipe, context={'request': request})
         return serializer.data
