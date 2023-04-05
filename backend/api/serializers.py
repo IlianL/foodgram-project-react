@@ -185,7 +185,7 @@ class CreateSubscriptionRecipeSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         subs = set(
             Subscription.objects.filter(
-                user_id=request.user).values_list('author_id', flat=True))
+                user_id=request.user.id).values_list('author_id', flat=True))
         return SubscriptionSerializer(
             instance.author, context={
                 'request': request,

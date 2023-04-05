@@ -123,12 +123,12 @@ class RecipesViewSet(ModelViewSet):
                     'author_id', flat=True))
         favorite_recipes = set(
             Favorite.objects.filter(
-                user_id=self.request.user,
+                user_id=self.request.user.id,
                 recipe_id=self.kwargs.get('pk')).values_list(
                     'recipe_id', flat=True))
         shopping_cart = set(
             ShoppingCart.objects.filter(
-                user_id=self.request.user,
+                user_id=self.request.user.id,
                 recipe_id=self.kwargs.get('pk')).values_list(
                     'recipe_id', flat=True))
         return {
@@ -151,7 +151,7 @@ class RecipesViewSet(ModelViewSet):
         permission_classes=[permissions.IsAuthenticated]
     )
     def favorite(self, request, pk=None):
-        user = request.user
+        user = request.user.id
         recipe = get_object_or_404(Recipe, id=pk)
         data = {
             'user': user.id,
@@ -175,7 +175,7 @@ class RecipesViewSet(ModelViewSet):
         permission_classes=[permissions.IsAuthenticated]
     )
     def shopping_cart(self, request, pk=None):
-        user = request.user
+        user = request.user.id
         recipe = get_object_or_404(Recipe, id=pk)
         data = {
             'user': user.id,
