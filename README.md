@@ -6,6 +6,7 @@
 
 ![Django](https://img.shields.io/badge/django-%23092E20.svg?style=for-the-badge&logo=django&logoColor=white)
 ![DjangoREST](https://img.shields.io/badge/DJANGO-REST-ff1709?style=for-the-badge&logo=django&logoColor=white&color=ff1709&labelColor=gray)
+![Djoiser](https://img.shields.io/badge/-djoiser-%23008080?style=for-the-badge&logo=appveyor)
 ![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)  
 
 ![Nginx](https://img.shields.io/badge/nginx-%23009639.svg?style=for-the-badge&logo=nginx&logoColor=white)
@@ -17,6 +18,10 @@
 ![Yandex.cloud](https://img.shields.io/badge/-yandex.clound-blue?style=for-the-badge&logo=appveyor)  
 
 
+
+*Уф, это было сложно, около 30 workflow коммитов! Я всё проверил, всё должно работать КРОМЕ корзины
+в ней нет рецептов которые я добавил но можно скачать список. Я просидел с этим день и понятия не имею куда смотреть, всё сделано по доке. to_represent такой же как и в избранном, но избранное работает а корзина нет!  
+ПС. скрипты для менеджера это круто, жаль раньше они обошли меня стороной :(*
 Сайт - http://158.160.52.113/  
 ```
 admin
