@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 import os
+from distutils.util import strtobool
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -28,7 +29,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = strtobool(os.getenv('DEBUG'))
 
 ALLOWED_HOSTS = ['*']
 

@@ -118,16 +118,17 @@ class RecipesViewSet(ModelViewSet):
         Так мы решаем n+1 проблему при запросе к БД в серилизаторе."""
         subs = set(
             Subscription.objects.filter(
-                user_id=self.request.user).values_list('author_id', flat=True))
+                user_id=self.request.user.id).values_list(
+                    'author_id', flat=True))
         favorite_recipes = set(
             Favorite.objects.filter(
                 user_id=self.request.user,
-                recipe_id=self.kwargs['pk']).values_list(
+                recipe_id=self.kwargs.get('pk')).values_list(
                     'recipe_id', flat=True))
         shopping_cart = set(
             ShoppingCart.objects.filter(
                 user_id=self.request.user,
-                recipe_id=self.kwargs['pk']).values_list(
+                recipe_id=self.kwargs.get('pk')).values_list(
                     'recipe_id', flat=True))
         return {
             'request': self.request,
