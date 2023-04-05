@@ -194,7 +194,6 @@ class CreateSubscriptionRecipeSerializer(serializers.ModelSerializer):
 
 class SubscriptionSerializer(UserSerializer):
 
-    # recipes = SubscriptionRecipeSerializer(read_only=True, many=True)
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField(read_only=True)
 
