@@ -194,7 +194,8 @@ class CreateSubscriptionRecipeSerializer(serializers.ModelSerializer):
 
 class SubscriptionSerializer(UserSerializer):
 
-    recipes = SubscriptionRecipeSerializer(read_only=True, many=True)
+    # recipes = SubscriptionRecipeSerializer(read_only=True, many=True)
+    recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField(read_only=True)
 
     class Meta(UserSerializer.Meta):
@@ -212,6 +213,16 @@ class SubscriptionSerializer(UserSerializer):
         # qr = self.get_queryset()
         # return qr[0]['count']
         return obj.recipes.count()
+
+    def get_recipes(self, obj):
+        request = self.context.get('request')
+        limit = request.query_params.get('recipes_limit')
+        recipes = obj.recipes.all()
+        if limit:
+            recipes = recipes[: int(limit)]
+        serializer = SubscriptionRecipeSerializer(
+            recipes, many=True, read_only=True)
+        return serializer.data
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
