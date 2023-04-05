@@ -123,13 +123,11 @@ class RecipesViewSet(ModelViewSet):
                     'author_id', flat=True))
         favorite_recipes = set(
             Favorite.objects.filter(
-                user_id=self.request.user.id,
-                recipe_id=self.kwargs.get('pk')).values_list(
+                user_id=self.request.user.id).values_list(
                     'recipe_id', flat=True))
         shopping_cart = set(
             ShoppingCart.objects.filter(
-                user_id=self.request.user.id,
-                recipe_id=self.kwargs.get('pk')).values_list(
+                user_id=self.request.user.id).values_list(
                     'recipe_id', flat=True))
         return {
             'request': self.request,
