@@ -1,7 +1,6 @@
 from django_filters.rest_framework import FilterSet, filters
 from recipes.models import Ingredient, Recipe
 from rest_framework import filters as f
-from users.models import User
 
 
 class CustomIngredientsFilter(f.SearchFilter):
@@ -18,7 +17,7 @@ class CustomIngredientsFilter(f.SearchFilter):
 
 class CustomRecipeFilter(FilterSet):
     """Фильтр для рецептов.
-    author (str) = фильтрация по полю username
+    author (id) = фильтрация по полю id
     tags (str) = фильтрация по полю slug
     is_favorited (bool) = булевое значение 1/0
     is_in_shopping_cart (bool) = булевое значение 1/0
