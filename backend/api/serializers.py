@@ -31,6 +31,7 @@ class UserSerializer(serializers.ModelSerializer):
         """Проверка подписки на пользователей."""
         return obj.id in self.context['subscriptions']
 
+    @transaction.atomic
     def create(self, validated_data):
         """ Создаём нового пользователя."""
         user = User(
@@ -182,17 +183,17 @@ class CreateSubscriptionRecipeSerializer(serializers.ModelSerializer):
         ]
 
     def to_representation(self, instance):
+        """Добавляем в контекст новое поле для get_is_subscribed."""
         request = self.context.get('request')
-        subs = set(
+        self.context['subscriptions'] = set(
             Subscription.objects.filter(
                 user_id=request.user.id).values_list('author_id', flat=True))
         return SubscriptionSerializer(
-            instance.author, context={
-                'request': request,
-                'subscriptions': subs}).data
+            instance.author, context=self.context).data
 
 
 class SubscriptionSerializer(UserSerializer):
+    """Отображение подкиски."""
 
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField(read_only=True)
@@ -202,18 +203,14 @@ class SubscriptionSerializer(UserSerializer):
                   'is_subscribed', 'recipes', 'recipes_count')
         read_only_fields = ('email', 'username', 'last_name', 'first_name',)
 
-# Получится такой вот монстр, скорее всего я всё сделал не так :DD
-    # def get_queryset(self):
-    #     id_author = next(iter(self.context.get('subscriptions')))
-    #     recipe_queryset = Recipe.objects.filter(author=id_author)
-    #     return recipe_queryset.values('author').annotate(count=Count('name'))
-
     def get_recipes_count(self, obj):
-        # qr = self.get_queryset()
-        # return qr[0]['count']
+
         return obj.recipes.count()
 
     def get_recipes(self, obj):
+        """
+        Пример запроса с query param:
+        http://127.0.0.1:8000/api/users/subscriptions/?recipes_limit=3"""
         request = self.context.get('request')
         limit = request.query_params.get('recipes_limit')
         recipes = obj.recipes.all()

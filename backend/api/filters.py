@@ -18,11 +18,11 @@ class CustomIngredientsFilter(f.SearchFilter):
 class CustomRecipeFilter(FilterSet):
     """Фильтр для рецептов.
     author (id) = фильтрация по полю id
-    tags (str) = фильтрация по полю slug
+    tags (str) = фильтрация по полю slug множественный выбор.
     is_favorited (bool) = булевое значение 1/0
     is_in_shopping_cart (bool) = булевое значение 1/0
     Filter example:
-    /api/recipes/?tags=lunch&author=10&is_in_shopping_cart=0&is_favorited=1
+    /api/recipes/?tags=lunch&tags=easy&is_in_shopping_cart=0&is_favorited=1
     """
     tags = filters.ModelMultipleChoiceFilter(
         field_name='tags__slug',
