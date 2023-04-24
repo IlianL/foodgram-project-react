@@ -18,20 +18,6 @@
 ![Yandex.cloud](https://img.shields.io/badge/-yandex.clound-blue?style=for-the-badge&logo=appveyor)  
 
 
-
-Сайт - http://158.160.52.113/  
-```
-admin
-login - admin
-pwd - gfhjkm111
-user_1
-email - chief@cook.ru
-pwd - gfhjkm111
-user_2
-email - u2@u.ru
-pwd - gfhjkm111
-```
-
 ## Описание
 Cервис для публикаций и обмена рецептами.
 
