@@ -23,8 +23,37 @@ Cервис для публикаций и обмена рецептами.
 
 На этом сервисе пользователи смогут публиковать рецепты, подписываться на публикации других пользователей, добавлять понравившиеся рецепты в список «Избранное», а перед походом в магазин скачивать сводный список продуктов, необходимых для приготовления одного или нескольких выбранных блюд.
 
+## Настройка перед деплоем.
+Для работы с GitHub Actions необходимо из репозитория перейти в раздел Settings > Secrets and variables > Actions создать переменные окружения:
+```
+DOCKER_USERNAME            # логин Docker Hub
+DOCKER_PASSWORD            # пароль от Docker Hub
+VM_HOST                    # публичный IP сервера
+VM_USER                    # имя пользователя на сервере
+SSH_KEY                    # приватный ssh-ключ
+PASSPHRASE                 # *если ssh-ключ защищен паролем
+DEBUG                      # False
+SECRET_KEY_DJANGO_SETTINGS # секретный ключ Django проекта
+TELEGRAM_TO                # ID телеграм-аккаунта, куда будут отправляться сообщения
+TELEGRAM_TOKEN             # токен бота, посылающего сообщения
+
+DB_ENGINE                  # django.db.backends.postgresql
+DB_NAME                    # postgres
+POSTGRES_USER              # postgres
+POSTGRES_PASSWORD          # задайте свой пароль для БД
+DB_HOST                    # db
+DB_PORT                    # 5432 
+```
+  
+Отредактируйте конфигурацию сервера infra/nginx.conf
+```
+# Измените server_name на адрс вашего сервера
+# Пример формата:
+server_name foodgramm.com;
+```
 
 ## Деплой:
+
 1. Подключитесь к своему серверу
 ```
 ssh your_login@your_ip
@@ -44,17 +73,32 @@ sudp apt install docker-compose
 docker --version
 docker-compose -- version
 ```
-5. Cкопируйте файлы docker-compose.yaml и nginx.conf из вашего проекта на сервер в home/<ваш_username>/docker-compose.yaml и home/<ваш_username>/nginx/default.conf соответственно.
+5. Cкопируйте файлы docker-compose.yaml и nginx.conf из проекта на сервер в home/username/docker-compose.yaml и home/username/nginx.conf соответственно.
+```
+# Выполните команду находясь в папке infra
+scp docker-compose.yml nginx.conf <username>@<host>:/home/<username>/ 
+```
 
 6. Запуск  
 Команда git push является тригером воркфлоу.
-Послу команды пуш нужно зайти на сервер и выполнить эти команды по очереди:
+После команды пуш нужно зайти на сервер и выполнить эти команды по очереди:
 ```
+# Делаем миграции.
 sudo docker-compose exec -T backend python manage.py migrate
 # Импортируем в БД ингредиенты и тэги.
 sudo docker-compose exec backend python manage.py importcsv
+# Собирем статику.
 sudo docker-compose exec -T backend python manage.py collectstatic --no-input
 # Создаём администратора.
 sudo docker-compose exec backend python manage.py createsuperuser
 ```
-Теперь проект доступен на по адресу вашего сервера.
+  
+Теперь проект доступен по адресу вашего сервера.
+```
+# Документация доступна по адресу:
+http://[ваш сервер]/api/docs/  
+# Админ зона:
+http://[ваш сервер]/admin/
+```
+  
+Автор: Илиан Ляпота
