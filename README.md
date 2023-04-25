@@ -51,18 +51,7 @@ DB_PORT                    # 5432
 # Пример:
 server_name foodgramm.com;
 ```
-  
-Cоздайте .env файл по пути foodgram-project-react/backend/.env и заполните его по примеру:
-```
-DB_ENGINE                  # django.db.backends.postgresql
-DB_NAME                    # postgres
-POSTGRES_USER              # postgres
-POSTGRES_PASSWORD          # задайте свой пароль для БД
-DB_HOST                    # db
-DB_PORT                    # 5432
-DEBUG                      # False
-SECRET_KEY                 # секретный ключ Django проекта
-```
+
 
 ## Деплой:
 
@@ -90,19 +79,14 @@ docker-compose -- version
 # Выполните команду находясь в папке infra
 scp docker-compose.yml nginx.conf <username>@<host>:/home/<username>/ 
 ```
-6. Создать и запустить контейнеры Docker.
-```
-# На сервера находясь в директории /home/<username>/
-docker-compose up -d
-```
-7. Workflow. Команда git push является тригером воркфлоу, при этом происходит:
+6. Workflow. Команда git push является тригером воркфлоу, при этом происходит:
 - Проверка кода на соответствие стандарту PEP8
 - Сборка и доставка докер-образов frontend и backend на Docker Hub
 - Остановка и удаление страых контейнеров на сервере. 
 - Разворачивание проекта на удаленном сервере
 - Отправка сообщения в Telegram в случае успеха
   
-8. После успешной сборки выполнить эти команды:
+7. После успешной сборки выполнить эти команды:
 ```
 # Делаем миграции.
 sudo docker-compose exec -T backend python manage.py migrate
@@ -114,7 +98,7 @@ sudo docker-compose exec -T backend python manage.py collectstatic --no-input
 sudo docker-compose exec backend python manage.py createsuperuser
 ```
   
-9. Остановка и повторный запуск проекта.
+8. Остановка и повторный запуск проекта.
 ```
 # Отсанавлием контейнеры без удаления.
 sudo docker-compose stop
