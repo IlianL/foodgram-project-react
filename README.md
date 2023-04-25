@@ -23,7 +23,7 @@ Cервис для публикаций и обмена рецептами.
 
 На этом сервисе пользователи смогут публиковать рецепты, подписываться на публикации других пользователей, добавлять понравившиеся рецепты в список «Избранное», а перед походом в магазин скачивать сводный список продуктов, необходимых для приготовления одного или нескольких выбранных блюд.
 
-## Настройка перед деплоем.
+## Подготовка к запуску проекта на сервере.
 Для работы с GitHub Actions необходимо из репозитория перейти в раздел Settings > Secrets and variables > Actions создать переменные окружения:
 ```
 DOCKER_USERNAME            # логин Docker Hub
@@ -50,6 +50,18 @@ DB_PORT                    # 5432
 # Заментие данные в строке server_name на адрс вашего сервера
 # Пример:
 server_name foodgramm.com;
+```
+  
+Cоздайте .env файл по пути foodgram-project-react/backend/.env и заполните его по примеру:
+```
+DB_ENGINE                  # django.db.backends.postgresql
+DB_NAME                    # postgres
+POSTGRES_USER              # postgres
+POSTGRES_PASSWORD          # задайте свой пароль для БД
+DB_HOST                    # db
+DB_PORT                    # 5432
+DEBUG                      # False
+SECRET_KEY                 # секретный ключ Django проекта
 ```
 
 ## Деплой:
@@ -78,10 +90,19 @@ docker-compose -- version
 # Выполните команду находясь в папке infra
 scp docker-compose.yml nginx.conf <username>@<host>:/home/<username>/ 
 ```
-
-6. Запуск  
-Команда git push является тригером воркфлоу.
-После команды пуш нужно зайти на сервер и выполнить эти команды по очереди:
+6. Создать и запустить контейнеры Docker.
+```
+# На сервера находясь в директории /home/<username>/
+docker-compose up -d
+```
+7. Workflow. Команда git push является тригером воркфлоу, при этом происходит:
+- Проверка кода на соответствие стандарту PEP8
+- Сборка и доставка докер-образов frontend и backend на Docker Hub
+- Остановка и удаление страых контейнеров на сервере. 
+- Разворачивание проекта на удаленном сервере
+- Отправка сообщения в Telegram в случае успеха
+  
+8. После успешной сборки выполнить эти команды:
 ```
 # Делаем миграции.
 sudo docker-compose exec -T backend python manage.py migrate
@@ -92,6 +113,18 @@ sudo docker-compose exec -T backend python manage.py collectstatic --no-input
 # Создаём администратора.
 sudo docker-compose exec backend python manage.py createsuperuser
 ```
+  
+9. Остановка и повторный запуск проекта.
+```
+# Отсанавлием контейнеры без удаления.
+sudo docker-compose stop
+# Запускаем остановленные контейнеры.
+sudo docker-compose start
+# Останавливаем контейнеры и удаляем, ключ -v удаляет тома.
+sudo docker-compose down -v
+```
+
+
   
 Теперь проект доступен по адресу вашего сервера.
 ```
