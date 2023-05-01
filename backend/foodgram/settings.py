@@ -181,6 +181,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 STATIC_URL = '/static/'
 # Статика для деплоя
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
 # Статика для локальных работ.
 # STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
 
