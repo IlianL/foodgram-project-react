@@ -23,72 +23,68 @@ Cервис для публикаций и обмена рецептами.
 
 На этом сервисе пользователи смогут публиковать рецепты, подписываться на публикации других пользователей, добавлять понравившиеся рецепты в список «Избранное», а перед походом в магазин скачивать сводный список продуктов, необходимых для приготовления одного или нескольких выбранных блюд.
 
-## Подготовка к запуску проекта на сервере.
-Для работы с GitHub Actions необходимо из репозитория перейти в раздел Settings > Secrets and variables > Actions создать переменные окружения:
-```
-DOCKER_USERNAME            # логин Docker Hub
-DOCKER_PASSWORD            # пароль от Docker Hub
-VM_HOST                    # публичный IP сервера
-VM_USER                    # имя пользователя на сервере
-SSH_KEY                    # приватный ssh-ключ
-PASSPHRASE                 # *если ssh-ключ защищен паролем
-DEBUG                      # False
-SECRET_KEY_DJANGO_SETTINGS # секретный ключ Django проекта
-TELEGRAM_TO                # ID телеграм-аккаунта, куда будут отправляться сообщения
-TELEGRAM_TOKEN             # токен бота, посылающего сообщения
-
-DB_ENGINE                  # django.db.backends.postgresql
-DB_NAME                    # postgres
-POSTGRES_USER              # postgres
-POSTGRES_PASSWORD          # задайте свой пароль для БД
-DB_HOST                    # db
-DB_PORT                    # 5432 
-```
-  
-Отредактируйте конфигурацию сервера infra/nginx.conf
-```
-# Заментие данные в строке server_name на адрс вашего сервера
-# Пример:
-server_name foodgramm.com;
-```
-
-
-## Деплой:
-
-1. Подключитесь к своему серверу
+## Запуск проекта на сервере.
+Скачайте проект
+ ```
+# Нам нужна только папка infra
+https://github.com/IlianL/foodgram-project-react.git
+ ```
+Подключитесь к своему серверу
 ```
 ssh your_login@your_ip
 ```
-2. Обновляем список пакетов и обновляем сами пакеты.
+Обновляем список пакетов и обновляем сами пакеты.
 ```
 sudo apt update
 sudo apt upgrade -y 
 ```
-3. Устанавливаем докер и докер компоуз.
+Устанавливаем докер и докер компоуз.
 ```
 sudo apt install docker.io
-sudp apt install docker-compose
+sudo apt install docker-compose
+# Если у вас не ubuntu, воспользуйтесь этой инструкцией для установки docker-compose:
+# https://docs.docker.com/compose/install/
 ```
-4. Проверяем успешность установки.
+Проверяем успешность установки.
 ```
 docker --version
-docker-compose -- version
+docker-compose --version
 ```
-5. Cкопируйте файлы docker-compose.yaml и nginx.conf из проекта на сервер в home/username/docker-compose.yaml и home/username/nginx.conf соответственно.
+Создайте на сервере директорию для проекта.
 ```
-# Выполните команду находясь в папке infra
-scp docker-compose.yml nginx.conf <username>@<host>:/home/<username>/ 
+mkdir foodgram && cd foodgram/
 ```
-6. Workflow. Команда git push является тригером воркфлоу, при этом происходит:
-- Проверка кода на соответствие стандарту PEP8
-- Сборка и доставка докер-образов frontend и backend на Docker Hub
-- Остановка и удаление страых контейнеров на сервере. 
-- Разворачивание проекта на удаленном сервере
-- Отправка сообщения в Telegram в случае успеха
-  
-7. После успешной сборки выполнить эти команды:
+Создайте и заполните .env файл по примеру.
+```
+nano .env
+DB_ENGINE=django.db.backends.postgresql # указываем, что работаем с postgresql
+DB_NAME=postgres # имя базы данных
+POSTGRES_USER=postgres # логин для подключения к базе данных
+POSTGRES_PASSWORD=example_pwd # пароль для подключения к БД
+DB_HOST=db # название сервиса (контейнера)
+DB_PORT=5432 # порт для подключения к БД
+SECRET_KEY=shhh_secret # секретный ключ джанго
+DEBUG=False
+```
+Отредактируйте файл infra/nginx.conf.
+```
+# Замените этот адрес на адрес вашего сервера.
+server_name 127.0.0.1;
+```
+Скопируйте файлы из папки infra на ваш сервер.
+```
+# В момент выполнения команды нужно находиться в корневой папке проекта
+# D:/.../foodgram-project-react/
+scp -r infra/*  <username>@<server IP>:/home/<server user>/foodgram/
+```
+Запустите контейнеры.
+```
+sudo docker-compose up -d
+```
+После успешной сборки выполнить эти команды:
 ```
 # Делаем миграции.
+sudo docker-compose exec -T backend python manage.py makemigrations
 sudo docker-compose exec -T backend python manage.py migrate
 # Импортируем в БД ингредиенты и тэги.
 sudo docker-compose exec backend python manage.py importcsv
@@ -97,25 +93,22 @@ sudo docker-compose exec -T backend python manage.py collectstatic --no-input
 # Создаём администратора.
 sudo docker-compose exec backend python manage.py createsuperuser
 ```
-  
-8. Остановка и повторный запуск проекта.
-```
-# Отсанавлием контейнеры без удаления.
-sudo docker-compose stop
-# Запускаем остановленные контейнеры.
-sudo docker-compose start
-# Останавливаем контейнеры и удаляем, ключ -v удаляет тома.
-sudo docker-compose down -v
-```
-
-
-  
 Теперь проект доступен по адресу вашего сервера.
 ```
 # Документация доступна по адресу:
 http://[ваш сервер]/api/docs/  
 # Админ зона:
 http://[ваш сервер]/admin/
+```
+
+Остановка и повторный запуск проекта.
+```
+# Отсанавлием контейнеры без удаления.
+sudo docker-compose stop
+# Запускаем остановленные контейнеры.
+sudo docker-compose start
+# Останавливаем и удаляем контейнеры, ключ -v удаляет тома.
+sudo docker-compose down -v
 ```
   
 Автор: Илиан Ляпота
