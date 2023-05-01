@@ -63,6 +63,8 @@ jobs:
             passphrase: ${{ secrets.PASSPHRASE }}
             script: |
               cd foodgram/
+              sudo docker pull ${{ secrets.DOCKER_USERNAME }}/food_back:latest
+              sudo docker pull ${{ secrets.DOCKER_USERNAME }}/food_front:latest
               sudo docker-compose down
               sudo rm .env
               touch .env
