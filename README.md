@@ -17,6 +17,10 @@
 
 ![Yandex.cloud](https://img.shields.io/badge/-yandex.clound-blue?style=for-the-badge&logo=appveyor)  
 
+***
+Привет! Если проект оказался полезен буду признателен за звездочку [репозиторию]([https://github.com/IlianL/foodgram-project-react.git]).
+Если есть вопросы мой тг в прифиле, всегда рад помочь.
+***
 
 ## Описание
 Cервис для публикаций и обмена рецептами.
